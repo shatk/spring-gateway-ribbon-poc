@@ -26,3 +26,4 @@ curl --location --request GET 'http://localhost:9090/ribbon/lb/hello/' \
 
 200OK
 Hello, Spring!
+
