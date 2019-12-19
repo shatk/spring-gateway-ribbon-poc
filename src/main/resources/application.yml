@@ -1,0 +1,95 @@
+test:
+#  hostport: httpbin.org:80
+#  hostport: localhost:5000
+#  uri: http://${test.hostport}
+  uri: lb://httpbin 
+
+server:
+  port: 9090
+  
+spring:
+  jmx:
+    enabled: false
+  cloud:
+    discovery:
+        locator:
+          enabled: true  
+    gateway:
+      default-filters:
+      - PrefixPath=/httpbin
+      - AddResponseHeader=X-Response-Default-Foo, Default-Bar
+
+      routes:
+      # =====================================
+      # to run server
+      # $ wscat --listen 9000
+      # to run client
+      # $ wscat --connect ws://localhost:8080/echo
+      - id: websocket_test
+        uri: ws://localhost:9000
+        order: 9000
+        predicates:
+        - Path=/echo
+      # =====================================
+      - id: default_path_to_httpbin
+        uri: ${test.uri}
+        order: 10000
+        predicates:
+        - Path=/**
+
+   
+ribbon:
+  eureka:
+   enabled: false
+   
+cp-endpoints:
+  ribbon:
+    listOfServers: 172.28.22.22:80, 172.28.22.23:80
+    ServerListRefreshInterval: 1000 
+    retryableStatusCodes: 404, 500 
+    MaxAutoRetries: 2
+    MaxAutoRetriesNextServer: 1
+    OkToRetryOnAllOperations: true
+    ReadTimeout: 10000
+    ConnectTimeout: 10000
+    EnablePrimeConnections: true
+    
+hello-service-endpoints:
+  ribbon:
+    listOfServers: 127.0.0.1:8080, 127.0.0.1:8081
+    ServerListRefreshInterval: 1000 
+    retryableStatusCodes: 404, 500 
+    MaxAutoRetries: 2
+    MaxAutoRetriesNextServer: 1
+    OkToRetryOnAllOperations: true
+    ReadTimeout: 10000
+    ConnectTimeout: 10000
+    EnablePrimeConnections: true
+    
+            
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
+    org.springframework.http.server.reactive: DEBUG
+    org.springframework.web.reactive: DEBUG
+    reactor.ipc.netty: DEBUG
+    reactor.netty: DEBUG
+
+management:
+  endpoint:
+    health:
+      enabled: true
+
+         
+# hystrix.command.fallbackcmd.execution.isolation.thread.timeoutInMilliseconds: 2000
+
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 30000
+            
+            
+
